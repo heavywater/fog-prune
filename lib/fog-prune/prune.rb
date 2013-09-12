@@ -27,7 +27,7 @@ class FogPrune
       @compute[p_key] = []
       @compute[p_key] = Config[:fog][p_key].map do |args|
         Fog::Compute.new(
-          format_fog_hash(args)
+          format_fog_hash(args.merge(:provider => p_key))
         )
       end
     end
