@@ -13,7 +13,7 @@ class FogPrune
   )
 
   attr_reader :ui
-  
+
   def initialize
     Chef::Knife.new.configure_chef
     @compute = Mash.new
@@ -41,7 +41,7 @@ class FogPrune
     end
     new_hash
   end
-  
+
   def sensu?
     Config[:prune].include?('sensu')
   end
@@ -74,9 +74,12 @@ class FogPrune
       end.join(' OR ')
     else
       max_ohai_time = Time.now.to_f - Config[:chef_converge_every].to_f
-      query = "ohai_time:[0.0 TO #{max_ohai_time}]"
+      query = ["ohai_time:[0.0 TO #{max_ohai_time}]"]
+      if(Config[:filter])
+        query << Config[:filter]
+      end
     end
-    Chef::Search::Query.new.search(:node, query).first
+    Chef::Search::Query.new.search(:node, query.join(' AND ')).first
   end
 
   def prune_node(node)
