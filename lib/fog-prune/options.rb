@@ -2,7 +2,7 @@ require 'mixlib/cli'
 require 'fog-prune/config'
 
 class FogPrune
-    
+
   class Options
     include Mixlib::CLI
 
@@ -85,11 +85,12 @@ class FogPrune
       :default => false,
       :description => 'Print action and exit'
     )
-    
+
     def configure(args)
       parse_options(args)
       Config.merge!(config)
       Config[:debug] = true if Config[:print_only]
+      Config.load_config_file! if Config[:config]
     end
   end
 end
