@@ -12,6 +12,6 @@ Gem::Specification.new do |s|
   s.bindir = 'bin'
   s.executables << 'fog-prune'
   s.add_dependency 'chef'
-  s.add_dependency 'fog', '~> 1.12.1'
+  s.add_dependency 'fog', '~> 1.20'
   s.files = Dir['**/*']
 end
