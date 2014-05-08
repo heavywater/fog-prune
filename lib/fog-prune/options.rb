@@ -77,13 +77,30 @@ class FogPrune
       :long => '--debug',
       :description => 'Turn on debug output'
     )
-
     option(:print_only,
       :short => '-o',
       :long => '--[no-]print-only',
       :boolean => true,
       :default => false,
       :description => 'Print action and exit'
+    )
+    option(:stale_nodes,
+      :short => '-S',
+      :long => '--[no-]stale-nodes',
+      :boolean => true,
+      :default => false,
+      :description => 'Remove stale nodes'
+    )
+    option(:stale_node_timeout,
+      :long => '--stale-node-timeout TIMEOUT',
+      :default => 3600,
+      :description => 'Delete stale nodes that exceed given timeout'
+    )
+    option(:tag_stale_nodes,
+      :short => '-T',
+      :long => '--[no-]tag-stale-nodes',
+      :default => true,
+      :description => 'Tag nodes with no ohai time set (used for stale node removal)'
     )
 
     def configure(args)
