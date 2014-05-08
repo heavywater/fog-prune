@@ -53,7 +53,7 @@ class FogPrune
   end
 
   def prune!
-
+    tag_stale_nodes if Config[:tag_stale_nodes]
     ui.info "Starting node pruning..."
     ui.warn "Pruning from: #{Config[:prune].join(', ')}"
     nodes_to_prune = discover_prunable_nodes
