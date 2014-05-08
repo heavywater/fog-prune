@@ -80,39 +80,37 @@ class FogPrune
       query = ["ohai_time:[0.0 TO #{max_ohai_time}]"]
       if(Config[:stale_nodes])
         max_prune_time = Time.now.to_f - Config[:stale_node_timeout].to_f
-        query << ["(prune_tag_time:[0.0 TO #{max_prune_time}] AND -ohai_time:[* TO *])"]
+        query << ["(prune_tag_time:[0.0 TO #{max_prune_time}] NOT ohai_time:[* TO *])"]
         query = ["(#{query.join(' OR ')})"]
       end
-      if(Config[:filter])
-        query << Config[:filter]
-      end
     end
-    collect_search(query.join(' AND '))
+    collect_search('AND ' + query.join(' AND '))
   end
 
   def collect_search(query)
-    [].tap do |result|
-      idx = 0
-      while((new_items = Chef::Search::Query.new.search(:node, query, QUERY_ROWS * idx, QUERY_ROWS).first).size == QUERY_ROWS)
-        result += new_items
-        idx += 1
-      end
+    new_query = ['name:*', Config[:filter]].compact.join(' AND ')
+    new_query << ' ' << query
+    debug "Running search with query: #{new_query.inspect}"
+    result = []
+    idx = 0
+    while((new_items = Chef::Search::Query.new.search(:node, new_query, 'X_CHEF_id_CHEF_X asc', QUERY_ROWS * idx, QUERY_ROWS).first).size == QUERY_ROWS)
+      debug "Fetched #{new_items.size} new items from server"
       result += new_items
+      idx += 1
     end
+    debug "Adding last fetched items (#{new_items.size})"
+    result += new_items
+    result
   end
 
   def tag_stale_nodes
-    query = ['-ohai_time:[* TO *]']
-    query.push('-prune_tag_time:[* TO *]')
-    if(Config[:filter])
-      query << Config[:filter]
-    end
-    nodes_to_tag = collect_search(query.join(' AND '))
-    ui.info "Tagging nodes with no ohai_time set. (#{node_to_tag.size} nodes)"
+    query = '-ohai_time:[* TO *] -prune_tag_time:[* TO *]'
+    nodes_to_tag = collect_search(query)
+    ui.info "Tagging nodes with no ohai_time set. (#{nodes_to_tag.size} nodes)"
     debug "Nodes to be tagged: #{nodes_to_tag.map(&:name).sort.join(', ')}"
     unless(Config[:print_only])
       nodes_to_tag.each do |node|
-        node[:prune_tag_time] = Time.now.to_f
+        node.set[:prune_tag_time] = Time.now.to_f
         node.save
       end
     else
@@ -150,10 +148,12 @@ class FogPrune
 
   def filter_prunables_via_fog(nodes_to_prune)
     nodes_to_prune.map do |node|
-      if(node.cloud && node.cloud.provider)
+      if(node[:cloud] && node.cloud.provider)
         if(respond_to?(check_method = "#{node.cloud.provider}_check"))
           send(check_method, node) ? node : nil
         end
+      elsif(node[:prune_tag_time] && node[:ohai_time].nil?)
+        node
       end
     end.compact
   end
