@@ -1,3 +1,4 @@
+require 'chef/mash'
 require 'mixlib/config'
 
 class FogPrune
