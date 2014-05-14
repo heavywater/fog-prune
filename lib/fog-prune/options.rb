@@ -70,7 +70,10 @@ class FogPrune
     option(:filter,
       :short => '-f "Solr filter"',
       :long => '--filter "Solr filter"',
-      :description => 'Add filter to node search'
+      :description => 'Add filter to node search',
+      :proc => lambda {|val|
+        FogPrune::Config[:filter] = [FogPrune::Config[:filter], val].compact.join(' AND ')
+      }
     )
     option(:debug,
       :short => '-d',
@@ -104,6 +107,12 @@ class FogPrune
     )
 
     def configure(args)
+      begin
+        require 'chef/knife'
+        Chef::Knife.new.configure_chef
+      rescue => e
+        $stderr.puts 'WARN: Failed to load defaults via knife configuration.'
+      end
       parse_options(args)
       Config.merge!(config)
       Config[:debug] = true if Config[:print_only]
