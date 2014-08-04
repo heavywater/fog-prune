@@ -180,7 +180,25 @@ class FogPrune
   end
 
   def rackspace_check(node)
-    raise 'Not implemented'
+    rackspace_node = rackspace_nodes.detect do |n|
+      n.name == node.name &&
+        n.ipv4_address == node[:rackspace][:public_ipv4]
+    end
+    unless(rackspace_node)
+      debug "#{node.name} returned nil from rackspace"
+    else
+      debug "#{node.name} state on rackspace: #{rackspace_node.state}"
+    end
+    rackspace_node.nil? || rackspace_node.state == 'DELETED'
+  end
+
+  def rackspace_nodes
+    unless(@rackspace_nodes)
+      @rackspace_nodes = compute(:rackspace).map do |compute_con|
+        compute_con.servers.all
+      end.flatten
+    end
+    @rackspace_nodes
   end
 
   def debug(msg)
