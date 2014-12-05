@@ -87,6 +87,13 @@ class FogPrune
       :default => false,
       :description => 'Print action and exit'
     )
+      option(:skip_confirmation,
+      :short => '-y',
+      :long => '--skip-confirmation',
+      :boolean => true,
+      :default => false,
+      :description => 'Prune nodes without prompting for confirmation'
+    )
     option(:stale_nodes,
       :short => '-S',
       :long => '--[no-]stale-nodes',

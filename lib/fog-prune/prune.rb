@@ -63,7 +63,7 @@ class FogPrune
     ui.warn "Nodes to prune: #{nodes_to_prune.size}"
     debug "#{nodes_to_prune.map(&:name).sort.join(', ')}"
     unless(Config[:print_only])
-      ui.confirm('Destroy these nodes')
+      ui.confirm('Destroy these nodes') unless Config[:skip_confirmation]
       nodes_to_prune.each do |node|
         prune_node(node)
       end
