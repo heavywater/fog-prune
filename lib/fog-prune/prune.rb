@@ -148,8 +148,8 @@ class FogPrune
 
   def filter_prunables_via_fog(nodes_to_prune)
     nodes_to_prune.map do |node|
-      if(node[:cloud] && node.cloud.provider)
-        if(respond_to?(check_method = "#{node.cloud.provider}_check"))
+      if(node[:cloud] && node[:cloud][:provider])
+        if(respond_to?(check_method = "#{node[:cloud][:provider]}_check"))
           send(check_method, node) ? node : nil
         end
       elsif(node[:prune_tag_time] && node[:ohai_time].nil?)
@@ -161,7 +161,7 @@ class FogPrune
   ## Checks
 
   def ec2_check(node)
-    aws_node = ec2_nodes.detect{|n| n.id == node.ec2.instance_id}
+    aws_node = ec2_nodes.detect{|n| n.id == node[:ec2][:instance_id]}
     unless(aws_node)
       debug "#{node.name} returned nil from aws"
     else
